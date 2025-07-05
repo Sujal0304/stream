@@ -1,57 +1,47 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
 
-# --- Upload Section ---
-uploaded_file = st.sidebar.file_uploader("Upload Model File (.pkl)", type="pkl")
+# Load the trained model
+MODEL_PATH = "forecasting_co2_emmision.pkl"
 
-# If file is uploaded, save it and load the model
-if uploaded_file is not None:
-    with open("forecasting_co2_emmision.pkl", "wb") as f:
-        f.write(uploaded_file.read())
-    try:
-        model = joblib.load("forecasting_co2_emmision.pkl")
-        st.success("✅ Model uploaded and loaded successfully!")
-    except Exception as e:
-        st.error(f"❌ Error loading model: {e}")
-        st.stop()
+st.title("🌍 CO₂ Emission Prediction by Country")
+
+# Check for model
+if not os.path.exists(MODEL_PATH):
+    st.error("Model file not found. Please upload 'forecasting_co2_emmision.pkl'")
 else:
-    st.warning("⚠️ Please upload 'forecasting_co2_emmision.pkl' to continue.")
-    st.stop()
+    model = joblib.load(MODEL_PATH)
 
+    # File upload
+    uploaded_file = st.file_uploader("Upload Dataset (CSV containing country data)", type=['csv'])
 
+    if uploaded_file:
+        try:
+            data = pd.read_csv(uploaded_file)
+            st.write("📄 Uploaded Data Preview", data.head())
 
-# App title
-st.title("Carbon Emission Prediction per Country")
+            # Dropdown for country selection
+            country_list = data['country'].unique()
+            selected_country = st.selectbox("Select a Country", country_list)
 
-# Sidebar - User input
-st.sidebar.header("Enter Input Data")
+            # Filter the data for selected country
+            country_data = data[data['country'] == selected_country]
 
-# Input fields
-country = st.sidebar.selectbox("Select Country", ['USA', 'IND', 'ARE', 'CHN', 'GBR'])
-gdp = st.sidebar.number_input("GDP per Capita", min_value=0.0, step=100.0)
-population = st.sidebar.number_input("Population (millions)", min_value=0.0, step=1.0)
-energy_use = st.sidebar.number_input("Energy Use per Capita", min_value=0.0, step=1.0)
+            if country_data.empty:
+                st.warning("⚠️ Selected country not found in dataset.")
+            else:
+                # Assuming only 1 row per country — or taking first match
+                input_data = country_data[['country', 'gdp_per_cap', 'population', 'energy_use_per_cap']].iloc[0:1]
 
-# Prepare input
-input_df = pd.DataFrame({
-    'country': [country],
-    'gdp_per_cap': [gdp],
-    'population': [population],
-    'energy_use_per_cap': [energy_use]
-})
+                if st.button("Predict CO₂ Emission"):
+                    prediction = model.predict(input_data)[0]
+                    st.success(f"🌿 Predicted CO₂ Emission for {selected_country}: {prediction:.2f} metric tons per capita")
 
-# Predict
-if st.sidebar.button("Predict CO₂ Emission"):
-    try:
-        prediction = model.predict(input_df)[0]
-        st.success(f"Predicted CO₂ Emission: {prediction:.2f} metric tons per capita")
-    except Exception as e:
-        st.error("Prediction failed. Please check your inputs or model compatibility.")
+        except Exception as e:
+            st.error(f"❌ Something went wrong: {e}")
 
-# Footer
-st.markdown("---")
-st.markdown("Made using Streamlit")
 
 
 
