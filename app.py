@@ -3,10 +3,20 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
+import gdown
 
-# Load trained model
-... model = joblib.load('forecasting_co2_emmision.pkl')  # ensure this matches your actual model filename
-... 
+file_id = "1x-n9pUdVWZnL-_ZyE-pUrI2mrzv4xIRY"
+model_path = "forecasting_co2_emmision.pkl"
+
+# Download only if not already downloaded
+if not os.path.exists(model_path):
+    gdown.download(f"https://drive.google.com/uc?id={file_id}", model_path, quiet=False)
+
+
+# Load the model
+model = joblib.load(model_path)
+
 ... # Page Title
 ... st.title("🌍 Carbon Emission Prediction per Country")
 ... 
