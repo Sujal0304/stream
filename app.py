@@ -1,17 +1,21 @@
-import streamlit as st
-import pandas as pd
+import os
 import joblib
+import streamlit as st
 
-# Constants
 MODEL_PATH = "forecasting_co2_emmision.pkl"
 
-# Load the model (after uploading .pkl manually to Streamlit Cloud)
-try:
-    model = joblib.load(MODEL_PATH)
-    st.success("Model loaded successfully.")
-except Exception as e:
-    st.error("Error loading model. Please check the file.")
+# Check if file exists before loading
+if os.path.exists(MODEL_PATH):
+    try:
+        model = joblib.load(MODEL_PATH)
+        st.success("✅ Model loaded successfully!")
+    except Exception as e:
+        st.error(f"❌ Failed to load model: {e}")
+        st.stop()
+else:
+    st.error("❌ Model file not found. Please upload 'forecasting_co2_emmision.pkl'.")
     st.stop()
+
 
 # App title
 st.title("Carbon Emission Prediction per Country")
