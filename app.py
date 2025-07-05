@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
+st.set_page_config(page_title="Carbon Emission Forecast", layout="centered")
 st.title("🌍 Carbon Emission Prediction per Country")
 
 # Upload model and dataset
@@ -64,9 +65,26 @@ if model_file and data_file:
                 latest_pred = predictions[-1]
                 st.success(f"🌿 Latest Predicted CO₂ Emission for {selected_country}: **{latest_pred:.2f} metric tons per capita**")
 
-                # Show forecast chart
+                # Forecast table with features
+                st.subheader(f"📊 Predicted CO₂ Emissions & Features for {selected_country}")
+                st.dataframe(
+                    input_data[['year', 'gdp_per_cap', 'population', 'energy_use_per_cap',
+                                'fdi_perc_gdp', 'en_per_cap', 'en_per_gdp', 'urb_pop_growth_perc', 'Predicted_CO2']]
+                    .sort_values(by='year')
+                    .rename(columns={'Predicted_CO2': 'CO₂ Emission Prediction (metric tons)'})
+                )
+
+                # Line chart of emissions
                 st.subheader("📈 CO₂ Emission Forecast Over Years")
                 st.line_chart(input_data.set_index('year')['Predicted_CO2'])
+
+                # Insight
+                change = predictions[-1] - predictions[0]
+                trend = "increased 📈" if change > 0 else "decreased 📉"
+                st.markdown(
+                    f"**Insight**: Between {input_data['year'].min()} and {input_data['year'].max()}, "
+                    f"CO₂ emissions for **{selected_country}** have {trend} by **{abs(change):.2f} metric tons per capita**."
+                )
 
             except Exception as e:
                 st.error(f"Prediction failed. Please check model compatibility.\n\nDetails: {e}")
