@@ -1,20 +1,24 @@
-import os
-import joblib
 import streamlit as st
+import pandas as pd
+import joblib
 
-MODEL_PATH = "forecasting_co2_emmision.pkl"
+# --- Upload Section ---
+uploaded_file = st.sidebar.file_uploader("Upload Model File (.pkl)", type="pkl")
 
-# Check if file exists before loading
-if os.path.exists(MODEL_PATH):
+# If file is uploaded, save it and load the model
+if uploaded_file is not None:
+    with open("forecasting_co2_emmision.pkl", "wb") as f:
+        f.write(uploaded_file.read())
     try:
-        model = joblib.load(MODEL_PATH)
-        st.success("✅ Model loaded successfully!")
+        model = joblib.load("forecasting_co2_emmision.pkl")
+        st.success("✅ Model uploaded and loaded successfully!")
     except Exception as e:
-        st.error(f"❌ Failed to load model: {e}")
+        st.error(f"❌ Error loading model: {e}")
         st.stop()
 else:
-    st.error("❌ Model file not found. Please upload 'forecasting_co2_emmision.pkl'.")
+    st.warning("⚠️ Please upload 'forecasting_co2_emmision.pkl' to continue.")
     st.stop()
+
 
 
 # App title
