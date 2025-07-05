@@ -28,7 +28,8 @@ if model_file is not None and data_file is not None:
         if input_row.empty:
             st.error("Selected country not found in dataset.")
         else:
-            input_features = input_row[['country', 'gdp_per_cap', 'population', 'energy_use_per_cap']]
+            input_features = input_row[['country', 'gdp', 'population', 'energy_use']]
+  
 
             # Make prediction
             try:
