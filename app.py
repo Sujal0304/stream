@@ -74,3 +74,8 @@ if model_file and data_file:
     except Exception as e:
         st.error(f"Error loading model or dataset.\n\nDetails: {e}")
 else:
+    st.info("Upload both the `.pkl` model and `.csv` dataset to proceed.")
+
+# Footer
+st.markdown("---")
+st.markdown("Made with ❤️ using Streamlit")
