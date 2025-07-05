@@ -94,6 +94,4 @@ if model_file and data_file:
 else:
     st.info("Upload both the `.pkl` model and `.csv` dataset to proceed.")
 
-# Footer
-st.markdown("---")
-st.markdown("Made with ❤️ using Streamlit")
+
