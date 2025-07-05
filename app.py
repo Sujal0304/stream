@@ -25,6 +25,10 @@ if model_file and data_file:
         }
         df.rename(columns=rename_map, inplace=True)
 
+# Create a copy column without dropping the original
+        df['energy_use_per_cap'] = df['en_per_cap']
+        df.rename(columns=rename_map, inplace=True)
+
         expected_features = ['gdp_per_cap', 'population', 'energy_use_per_cap',
                              'fdi_perc_gdp', 'en_per_cap', 'en_per_gdp', 'urb_pop_growth_perc']
 
