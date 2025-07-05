@@ -42,32 +42,35 @@ if model_file and data_file:
             st.error(f"Dataset missing required columns: {', '.join(missing)}")
             st.stop()
 
-        if 'country' not in df.columns:
-            st.error("Dataset must contain a 'country' column.")
+        if 'country' not in df.columns or 'year' not in df.columns:
+            st.error("Dataset must contain 'country' and 'year' columns.")
             st.stop()
 
         # Normalize country column
         df['country'] = df['country'].str.upper()
         selected_country = st.selectbox("Select Country", sorted(df['country'].unique()))
 
-        input_row = df[df['country'] == selected_country]
+        input_data = df[df['country'] == selected_country]
 
-        if input_row.empty:
+        if input_data.empty:
             st.error("Selected country not found in dataset.")
         else:
             try:
-                features = input_row[expected_features]
-                prediction = model.predict(features)[0]
-                st.success(f"🌿 Predicted CO₂ Emission for {selected_country}: **{prediction:.2f} metric tons per capita**")
+                features = input_data[expected_features]
+                predictions = model.predict(features)
+                input_data['Predicted_CO2'] = predictions
+
+                # Show latest prediction
+                latest_pred = predictions[-1]
+                st.success(f"🌿 Latest Predicted CO₂ Emission for {selected_country}: **{latest_pred:.2f} metric tons per capita**")
+
+                # Show forecast chart
+                st.subheader("📈 CO₂ Emission Forecast Over Years")
+                st.line_chart(input_data.set_index('year')['Predicted_CO2'])
+
             except Exception as e:
                 st.error(f"Prediction failed. Please check model compatibility.\n\nDetails: {e}")
 
     except Exception as e:
         st.error(f"Error loading model or dataset.\n\nDetails: {e}")
 else:
-    st.info("Upload both the `.pkl` model and `.csv` dataset to proceed.")
-
-# Footer
-st.markdown("---")
-st.markdown("Made with ❤️ using Streamlit")
-
