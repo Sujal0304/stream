@@ -5,7 +5,7 @@ import pandas as pd
 import joblib
 
 # Load trained model
-... model = joblib.load('carbon_model.pkl')  # ensure this matches your actual model filename
+... model = joblib.load('forecasting_co2_emmision.pkl')  # ensure this matches your actual model filename
 ... 
 ... # Page Title
 ... st.title("🌍 Carbon Emission Prediction per Country")
