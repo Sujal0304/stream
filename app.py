@@ -89,7 +89,7 @@ if model_file and data_file:
                 st.subheader("📈 CO₂ Emission Forecast for Upcoming Years")
                 if 'year' in input_data.columns:
                     last_year = input_data['year'].max()
-                    future_years = list(range(last_year + 1, last_year + 6))  # e.g., 5 years ahead
+                    future_years = list(range(last_year + 1, last_year + 15))  # e.g., 5 years ahead
                 
                     # Use latest known values to forecast (simplified)
                     last_known = input_data.iloc[-1]  # last row
