@@ -15,8 +15,8 @@ if uploaded_file:
         df.columns = df.columns.str.strip().str.lower()
 
         # Rename if necessary
-        if 'predicted_co₂' in df.columns:
-            df.rename(columns={'predicted_co₂': 'predicted_co2'}, inplace=True)
+        if 'co2_percap' in df.columns:
+            df.rename(columns={'co2_percap': 'predicted_co2'}, inplace=True)
 
         # Ensure required columns exist
         required_cols = ['country', 'year', 'predicted_co2']
