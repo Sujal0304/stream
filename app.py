@@ -52,7 +52,32 @@ if uploaded_file:
 
             country_data['yearly_change_%'] = country_data['predicted_co2'].pct_change() * 100
             st.line_chart(country_data.set_index('year')['yearly_change_%'])
+
+            st.subheader("🌍 CO₂ vs GDP per Capita Scatter Plot")
+            chart = alt.Chart(df).mark_circle(size=60).encode(
+                x='gdp_per_cap',
+                y='predicted_co2',
+                color='country',
+                tooltip=['country', 'gdp_per_cap', 'predicted_co2']
+            ).interactive()
+            st.altair_chart(chart, use_container_width=True)
+
+            st.subheader("🌍 Year Slider to See Emissions for All Countries")
+            selected_year = st.slider("Select Year", min_value=int(df['year'].min()), max_value=int(df['year'].max()))
+            year_data = df[df['year'] == selected_year]
+            st.bar_chart(year_data.set_index('country')['predicted_co2'])
             
+            st.subheader("🌍 Download Forecasted CSV Button")
+            csv = df.to_csv(index=False).encode('utf-8')
+            st.download_button(
+                label="Download Forecasted Data as CSV",
+                data=csv,
+                file_name='forecasted_emissions.csv',
+                mime='text/csv',
+            )
+
+            st.metric("Root Mean Squared Error", f"{rmse:.2f}")
+            st.metric("R² Score", f"{r2_score:.2f}")
     except Exception as e:
         st.error(f"Failed to process the file. Error: {e}")
 else:
