@@ -90,7 +90,7 @@ if model_file and data_file:
 
                 if 'year' in input_data.columns:
                     last_year = input_data['year'].max()
-                    future_years = list(range(last_year + 1, last_year + 11))  # Predict next 10 years
+                    future_years = list(range(last_year + 1, last_year + 21))  # Predict next 10 years
                 
                     last_known = input_data.iloc[-1]  # Get last known feature values
                     base = last_known[expected_features].copy()
