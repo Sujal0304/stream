@@ -87,25 +87,43 @@ if model_file and data_file:
                 )
 
                 st.subheader("📈 CO₂ Emission Forecast for Upcoming Years")
+
                 if 'year' in input_data.columns:
                     last_year = input_data['year'].max()
-                    future_years = list(range(last_year + 1, last_year + 15))  # e.g., 5 years ahead
+                    future_years = list(range(last_year + 1, last_year + 11))  # Predict next 10 years
                 
-                    # Use latest known values to forecast (simplified)
-                    last_known = input_data.iloc[-1]  # last row
-                    future_data = pd.DataFrame([last_known[expected_features]] * len(future_years))
-                    future_data['year'] = future_years
+                    last_known = input_data.iloc[-1]  # Get last known feature values
+                    base = last_known[expected_features].copy()
+                
+                    # Simulate small annual growth for each feature
+                    gdp_growth = 0.03  # 3% GDP growth
+                    pop_growth = 0.02  # 2% population growth
+                    energy_growth = 0.01  # 1% energy growth
+                
+                    future_data = []
+                    for i, year in enumerate(future_years):
+                        row = base.copy()
+                        row['gdp_per_cap'] *= (1 + gdp_growth) ** i
+                        row['population'] *= (1 + pop_growth) ** i
+                        row['energy_use_per_cap'] *= (1 + energy_growth) ** i
+                        row['fdi_perc_gdp'] = row['fdi_perc_gdp']  # Keep constant or tweak
+                        row['en_per_cap'] = row['energy_use_per_cap']  # ensure aligned
+                        row['en_per_gdp'] = row['en_per_gdp']
+                        row['urb_pop_growth_perc'] = row['urb_pop_growth_perc']
+                        row['year'] = year
+                        future_data.append(row)
 
-                try:
-                    future_preds = model.predict(future_data[expected_features])
-                    forecast_df = pd.DataFrame({
-                        'year': future_years,
-                        'Predicted_CO2': future_preds
-                    })
-            
-                    st.line_chart(forecast_df.set_index('year'))
-                except Exception as e:
-                    st.error(f"Future forecasting failed. Error: {e}")
+                    future_df = pd.DataFrame(future_data)
+                
+                    try:
+                        future_preds = model.predict(future_df[expected_features])
+                        forecast_df = pd.DataFrame({
+                            'year': future_years,
+                            'Predicted_CO2': future_preds
+                        })
+                        st.line_chart(forecast_df.set_index('year'))
+                    except Exception as e:
+                        st.error(f"Future forecasting failed. Error: {e}")
                         
             except Exception as e:
                     st.error(f"Prediction failed. Please check model compatibility.\n\nDetails: {e}")
