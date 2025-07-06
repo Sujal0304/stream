@@ -49,15 +49,15 @@ if uploaded_file:
             st.subheader("🌍 Year-on-Year Change in CO₂ Emissions")
             country_data['yearly_change_%'] = country_data['predicted_co2'].pct_change() * 100
             st.line_chart(country_data.set_index('year')['yearly_change_%'])
-            
-            st.subheader("🌍 Top 5 Forecasted CO₂ Emitters")
-            top_emitters = df.groupby('country')['predicted_co2'].max().sort_values(ascending=False).head(5)
-            st.bar_chart(top_emitters)
 
             st.subheader("🌍 Year Slider to See Emissions for All Countries")
             selected_year = st.slider("Select Year", min_value=int(df['year'].min()), max_value=int(df['year'].max()))
             year_data = df[df['year'] == selected_year]
             st.bar_chart(year_data.set_index('country')['predicted_co2'])
+            
+            st.subheader("🌍 Top 3 Forecasted CO₂ Emitters")
+            top_emitters = df.groupby('country')['predicted_co2'].max().sort_values(ascending=False).head(3)
+            st.bar_chart(top_emitters)
            
     except Exception as e:
         st.error(f"Failed to process the file. Error: {e}")
