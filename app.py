@@ -2,133 +2,51 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-st.set_page_config(page_title="Carbon Emission Forecast", layout="centered")
-st.title("🌍 Carbon Emission Prediction per Country")
+st.set_page_config(page_title="CO₂ Forecast Dashboard", layout="centered")
 
-# Upload model and dataset
-model_file = st.file_uploader("Upload your trained model (.pkl)", type=["pkl"])
-data_file = st.file_uploader("Upload dataset (.csv)", type=["csv"])
+st.title("🌍 CO₂ Emission Forecast per Country")
 
-if model_file and data_file:
+# Upload files
+model_file = st.file_uploader("Upload trained model (.pkl)", type=["pkl"])
+forecast_file = st.file_uploader("Upload forecasted CO₂ data (.csv)", type=["csv"])
+
+if model_file and forecast_file:
     try:
-        # Load model
+        # Load model (optional use)
         model = joblib.load(model_file)
 
-        # Load dataset
-        df = pd.read_csv(data_file)
-        df.columns = df.columns.str.strip()
+        # Load forecasted data
+        forecast_df = pd.read_csv(forecast_file)
+        forecast_df.columns = forecast_df.columns.str.strip().str.lower()  # Standardize
 
-        # Create 'energy_use_per_cap' by copying 'en_per_cap'
-        if 'en_per_cap' in df.columns:
-            df['energy_use_per_cap'] = df['en_per_cap']
+        required_columns = ['country', 'year', 'predicted_co2']
+        if not all(col in forecast_df.columns for col in required_columns):
+            st.error(f"Uploaded CSV must include these columns: {', '.join(required_columns)}")
+            st.stop()
+
+        # Format and select
+        forecast_df['country'] = forecast_df['country'].str.upper()
+        countries = sorted(forecast_df['country'].unique())
+        selected_country = st.selectbox("Select Country", countries)
+
+        country_data = forecast_df[forecast_df['country'] == selected_country]
+
+        if country_data.empty:
+            st.warning(f"No forecasted data available for {selected_country}")
         else:
-            st.error("Column 'en_per_cap' is missing in dataset.")
-            st.stop()
+            st.subheader(f"📈 Forecasted CO₂ Emissions for {selected_country}")
+            st.line_chart(country_data.set_index('year')['predicted_co2'])
 
-        # Rename columns to match model's expected input
-        rename_map = {
-            'gni_per_cap': 'gdp_per_cap',
-            'pop': 'population'
-        }
-        df.rename(columns=rename_map, inplace=True)
-
-        expected_features = [
-            'gdp_per_cap', 'population', 'energy_use_per_cap',
-            'fdi_perc_gdp', 'en_per_cap', 'en_per_gdp', 'urb_pop_growth_perc'
-        ]
-
-        # Validate all required features
-        missing = [f for f in expected_features if f not in df.columns]
-        if missing:
-            st.error(f"Dataset missing required columns: {', '.join(missing)}")
-            st.stop()
-
-        if 'country' not in df.columns or 'year' not in df.columns:
-            st.error("Dataset must contain 'country' and 'year' columns.")
-            st.stop()
-
-        # Normalize country column
-        df['country'] = df['country'].str.upper()
-        selected_country = st.selectbox("Select Country", sorted(df['country'].unique()))
-
-        input_data = df[df['country'] == selected_country]
-
-        if input_data.empty:
-            st.error("Selected country not found in dataset.")
-        else:
-            try:
-                features = input_data[expected_features]
-                predictions = model.predict(features)
-                input_data['Predicted_CO2'] = predictions
-
-                # Show latest prediction
-                latest_pred = predictions[-1]
-                st.success(f"🌿 Latest Predicted CO₂ Emission for {selected_country}: **{latest_pred:.2f} metric tons per capita**")
-
-                # Forecast table with features
-                st.subheader(f"📊 Predicted CO₂ Emissions & Features for {selected_country}")
-                st.dataframe(
-                    input_data[['year', 'gdp_per_cap', 'population', 'energy_use_per_cap',
-                                'fdi_perc_gdp', 'en_per_cap', 'en_per_gdp', 'urb_pop_growth_perc', 'Predicted_CO2']]
-                    .sort_values(by='year')
-                    .rename(columns={'Predicted_CO2': 'CO₂ Emission Prediction (metric tons)'})
-                )
-
-                # Line chart of emissions
-                st.subheader("📈 CO₂ Emission Forecast Over Years")
-                st.line_chart(input_data.set_index('year')['Predicted_CO2'])
-
-                # Insight
-                change = predictions[-1] - predictions[0]
-                trend = "increased 📈" if change > 0 else "decreased 📉"
-                st.markdown(
-                    f"**Insight**: Between {input_data['year'].min()} and {input_data['year'].max()}, "
-                    f"CO₂ emissions for **{selected_country}** have {trend} by **{abs(change):.2f} metric tons per capita**."
-                )
-
-                st.subheader("📈 CO₂ Emission Forecast for Upcoming Years")
-
-                if 'year' in input_data.columns:
-                    last_year = input_data['year'].max()
-                    future_years = list(range(last_year + 1, last_year + 21))  # Predict next 10 years
-                
-                    last_known = input_data.iloc[-1]  # Get last known feature values
-                    base = last_known[expected_features].copy()
-                
-                    # Simulate small annual growth for each feature
-                    gdp_growth = 0.03  # 3% GDP growth
-                    pop_growth = 0.02  # 2% population growth
-                    energy_growth = 0.01  # 1% energy growth
-                
-                    future_data = []
-                    for i, year in enumerate(future_years):
-                        row = base.copy()
-                        row['gdp_per_cap'] *= (1 + gdp_growth) ** i
-                        row['population'] *= (1 + pop_growth) ** i
-                        row['energy_use_per_cap'] *= (1 + energy_growth) ** i
-                        row['fdi_perc_gdp'] = row['fdi_perc_gdp']  # Keep constant or tweak
-                        row['en_per_cap'] = row['energy_use_per_cap']  # ensure aligned
-                        row['en_per_gdp'] = row['en_per_gdp']
-                        row['urb_pop_growth_perc'] = row['urb_pop_growth_perc']
-                        row['year'] = year
-                        future_data.append(row)
-
-                    future_df = pd.DataFrame(future_data)
-                
-                    try:
-                        future_preds = model.predict(future_df[expected_features])
-                        forecast_df = pd.DataFrame({
-                            'year': future_years,
-                            'Predicted_CO2': future_preds
-                        })
-                        st.line_chart(forecast_df.set_index('year'))
-                    except Exception as e:
-                        st.error(f"Future forecasting failed. Error: {e}")
-                        
-            except Exception as e:
-                    st.error(f"Prediction failed. Please check model compatibility.\n\nDetails: {e}")
+            # Optionally show raw table
+            with st.expander("🔍 Show Forecasted Data"):
+                st.dataframe(country_data[['year', 'predicted_co2']].reset_index(drop=True))
 
     except Exception as e:
-        st.error(f"Error loading model or dataset.\n\nDetails: {e}")
+        st.error(f"Something went wrong. Details:\n\n{e}")
+
 else:
-    st.info("Upload both the `.pkl` model and `.csv` dataset to proceed.")
+    st.info("Upload both a `.pkl` model and a forecasted `.csv` file to proceed.")
+
+# Footer
+st.markdown("---")
+st.markdown("Developed using 🐍 Streamlit for Environmental Insights")
