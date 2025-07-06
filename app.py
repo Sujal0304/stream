@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import altair as alt
 
 st.set_page_config(page_title="Forecast CO₂ Chart", layout="centered")
 st.title("📈 Forecasted CO₂ Emissions by Country")
@@ -47,21 +46,13 @@ if uploaded_file:
             with st.expander("Show Forecast Data Table"):
                 st.dataframe(country_data[['year', 'predicted_co2']].reset_index(drop=True))
 
+            st.subheader("🌍 CO₂ vs GDP per Capita Scatter Plot")
+            country_data['yearly_change_%'] = country_data['predicted_co2'].pct_change() * 100
+            st.line_chart(country_data.set_index('year')['yearly_change_%'])
+            
             st.subheader("🌍 Top 5 Forecasted CO₂ Emitters")
             top_emitters = df.groupby('country')['predicted_co2'].max().sort_values(ascending=False).head(5)
             st.bar_chart(top_emitters)
-
-            country_data['yearly_change_%'] = country_data['predicted_co2'].pct_change() * 100
-            st.line_chart(country_data.set_index('year')['yearly_change_%'])
-
-            st.subheader("🌍 CO₂ vs GDP per Capita Scatter Plot")
-            chart = alt.Chart(df).mark_circle(size=60).encode(
-                x='gdp_per_cap',
-                y='predicted_co2',
-                color='country',
-                tooltip=['country', 'gdp_per_cap', 'predicted_co2']
-            ).interactive()
-            st.altair_chart(chart, use_container_width=True)
 
             st.subheader("🌍 Year Slider to See Emissions for All Countries")
             selected_year = st.slider("Select Year", min_value=int(df['year'].min()), max_value=int(df['year'].max()))
