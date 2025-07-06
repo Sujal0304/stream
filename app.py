@@ -46,6 +46,13 @@ if uploaded_file:
             with st.expander("Show Forecast Data Table"):
                 st.dataframe(country_data[['year', 'predicted_co2']].reset_index(drop=True))
 
+            st.subheader("🌍 Top 5 Forecasted CO₂ Emitters")
+            top_emitters = df.groupby('country')['predicted_co2'].max().sort_values(ascending=False).head(5)
+            st.bar_chart(top_emitters)
+
+            country_data['yearly_change_%'] = country_data['predicted_co2'].pct_change() * 100
+            st.line_chart(country_data.set_index('year')['yearly_change_%'])
+            
     except Exception as e:
         st.error(f"Failed to process the file. Error: {e}")
 else:
