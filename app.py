@@ -44,7 +44,7 @@ if uploaded_file:
 
             st.subheader("🌍 Forecast Data Table")
             #with st.expander("Show Forecast Data Table"):
-                st.dataframe(country_data[['year', 'predicted_co2']].reset_index(drop=True))
+            st.dataframe(country_data[['year', 'predicted_co2']].reset_index(drop=True))
 
             st.subheader("🌍 Year-on-Year Change in CO₂ Emissions")
             country_data['yearly_change_%'] = country_data['predicted_co2'].pct_change() * 100
