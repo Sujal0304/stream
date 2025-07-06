@@ -107,12 +107,10 @@ if model_file and data_file:
                 except Exception as e:
                     st.error(f"Future forecasting failed. Error: {e}")
                         
-             except Exception as e:
+            except Exception as e:
                     st.error(f"Prediction failed. Please check model compatibility.\n\nDetails: {e}")
 
     except Exception as e:
         st.error(f"Error loading model or dataset.\n\nDetails: {e}")
 else:
     st.info("Upload both the `.pkl` model and `.csv` dataset to proceed.")
-
-
