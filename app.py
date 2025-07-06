@@ -42,11 +42,11 @@ if uploaded_file:
             st.subheader(f"🌍 CO₂ Emission Forecast for {selected_country}")
             st.line_chart(country_data.set_index('year')['predicted_co2'])
 
-            # Optional: Display data table
-            with st.expander("Show Forecast Data Table"):
+            st.subheader("🌍 Forecast Data Table")
+            #with st.expander("Show Forecast Data Table"):
                 st.dataframe(country_data[['year', 'predicted_co2']].reset_index(drop=True))
 
-            st.subheader("🌍 CO₂ vs GDP per Capita Scatter Plot")
+            st.subheader("🌍 Year-on-Year Change in CO₂ Emissions")
             country_data['yearly_change_%'] = country_data['predicted_co2'].pct_change() * 100
             st.line_chart(country_data.set_index('year')['yearly_change_%'])
             
@@ -58,18 +58,7 @@ if uploaded_file:
             selected_year = st.slider("Select Year", min_value=int(df['year'].min()), max_value=int(df['year'].max()))
             year_data = df[df['year'] == selected_year]
             st.bar_chart(year_data.set_index('country')['predicted_co2'])
-            
-            st.subheader("🌍 Download Forecasted CSV Button")
-            csv = df.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Download Forecasted Data as CSV",
-                data=csv,
-                file_name='forecasted_emissions.csv',
-                mime='text/csv',
-            )
-
-            st.metric("Root Mean Squared Error", f"{rmse:.2f}")
-            st.metric("R² Score", f"{r2_score:.2f}")
+           
     except Exception as e:
         st.error(f"Failed to process the file. Error: {e}")
 else:
