@@ -86,8 +86,29 @@ if model_file and data_file:
                     f"CO₂ emissions for **{selected_country}** have {trend} by **{abs(change):.2f} metric tons per capita**."
                 )
 
-            except Exception as e:
-                st.error(f"Prediction failed. Please check model compatibility.\n\nDetails: {e}")
+                st.subheader("📈 CO₂ Emission Forecast for Upcoming Years")
+                if 'year' in input_data.columns:
+                    last_year = input_data['year'].max()
+                    future_years = list(range(last_year + 1, last_year + 6))  # e.g., 5 years ahead
+                
+                    # Use latest known values to forecast (simplified)
+                    last_known = input_data.iloc[-1]  # last row
+                    future_data = pd.DataFrame([last_known[expected_features]] * len(future_years))
+                    future_data['year'] = future_years
+
+                try:
+                    future_preds = model.predict(future_data[expected_features])
+                    forecast_df = pd.DataFrame({
+                        'year': future_years,
+                        'Predicted_CO2': future_preds
+                    })
+            
+                    st.line_chart(forecast_df.set_index('year'))
+                except Exception as e:
+                    st.error(f"Future forecasting failed. Error: {e}")
+                        
+             except Exception as e:
+                    st.error(f"Prediction failed. Please check model compatibility.\n\nDetails: {e}")
 
     except Exception as e:
         st.error(f"Error loading model or dataset.\n\nDetails: {e}")
